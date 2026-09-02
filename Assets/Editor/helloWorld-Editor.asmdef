@@ -1,0 +1,10 @@
+{
+  "name": "helloWorld-Editor",
+  "references": [
+    "helloWorld"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}

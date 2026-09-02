@@ -1,0 +1,263 @@
+fileFormatVersion: 2
+guid: c0cc8b5aaec6abc40930dc6573f4f92d
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Button 1
+    100004: Button 2
+    100006: Button 3
+    100008: Button 4
+    100010: Button Bases
+    100012: Component_PuzzleBackground
+    100014: LED 1
+    100016: LED 1 Ploded
+    100018: LED 2
+    100020: LED 2 Ploded
+    100022: LED 3
+    100024: LED 3 Ploded
+    100026: LED 4
+    100028: LED 4 Ploded
+    100030: LED Legs
+    100032: Screen
+    100034: ScreenBoard
+    100036: Screws
+    100038: Solders
+    100040: Strip
+    100042: Button1HL
+    100044: Button2HL
+    100046: Button3HL
+    100048: Button4HL
+    100050: Text
+    100052: LED 1 Legs
+    100054: LED 2 Legs
+    100056: LED 3 Legs
+    100058: LED 4 Legs
+    400000: //RootNode
+    400002: Button 1
+    400004: Button 2
+    400006: Button 3
+    400008: Button 4
+    400010: Button Bases
+    400012: Component_PuzzleBackground
+    400014: LED 1
+    400016: LED 1 Ploded
+    400018: LED 2
+    400020: LED 2 Ploded
+    400022: LED 3
+    400024: LED 3 Ploded
+    400026: LED 4
+    400028: LED 4 Ploded
+    400030: LED Legs
+    400032: Screen
+    400034: ScreenBoard
+    400036: Screws
+    400038: Solders
+    400040: Strip
+    400042: Button1HL
+    400044: Button2HL
+    400046: Button3HL
+    400048: Button4HL
+    400050: Text
+    400052: LED 1 Legs
+    400054: LED 2 Legs
+    400056: LED 3 Legs
+    400058: LED 4 Legs
+    2100000: Component_PuzzleBack_mat
+    2100002: No Name
+    2100004: Button Red
+    2100006: Button Blue
+    2100008: Button Yellow
+    2100010: Button Green
+    2100012: Casing
+    2100014: Screws
+    2100016: Board
+    2100018: Screen
+    2100020: Solder
+    2100022: Strip inner
+    2100024: Strip outer
+    2100026: Text White
+    2100028: Text Light Blue
+    2100030: Text Yellow
+    2100032: Text Grey
+    2100034: Text Green
+    2100036: Text Brown
+    2100038: Text Mint
+    2100040: Text Dark Blue
+    2100042: Red
+    2100044: Blue
+    2100046: Yellow
+    2100048: Green
+    2100050: red
+    2100052: blue
+    2100054: yellow
+    2100056: green
+    2300000: //RootNode
+    2300002: Button 1
+    2300004: Button 2
+    2300006: Button 3
+    2300008: Button 4
+    2300010: Button Bases
+    2300012: Component_PuzzleBackground
+    2300014: LED 1
+    2300016: LED 1 Ploded
+    2300018: LED 2
+    2300020: LED 2 Ploded
+    2300022: LED 3
+    2300024: LED 3 Ploded
+    2300026: LED 4
+    2300028: LED 4 Ploded
+    2300030: LED Legs
+    2300032: Screen
+    2300034: ScreenBoard
+    2300036: Screws
+    2300038: Solders
+    2300040: Strip
+    2300042: Button1HL
+    2300044: Button2HL
+    2300046: Button3HL
+    2300048: Button4HL
+    2300050: Text
+    2300052: LED 1 Legs
+    2300054: LED 2 Legs
+    2300056: LED 3 Legs
+    2300058: LED 4 Legs
+    3300000: //RootNode
+    3300002: Button 1
+    3300004: Button 2
+    3300006: Button 3
+    3300008: Button 4
+    3300010: Button Bases
+    3300012: Component_PuzzleBackground
+    3300014: LED 1
+    3300016: LED 1 Ploded
+    3300018: LED 2
+    3300020: LED 2 Ploded
+    3300022: LED 3
+    3300024: LED 3 Ploded
+    3300026: LED 4
+    3300028: LED 4 Ploded
+    3300030: LED Legs
+    3300032: Screen
+    3300034: ScreenBoard
+    3300036: Screws
+    3300038: Solders
+    3300040: Strip
+    3300042: Button1HL
+    3300044: Button2HL
+    3300046: Button3HL
+    3300048: Button4HL
+    3300050: Text
+    3300052: LED 1 Legs
+    3300054: LED 2 Legs
+    3300056: LED 3 Legs
+    3300058: LED 4 Legs
+    4300000: Component_PuzzleBackground
+    4300002: Button 1
+    4300004: Button 2
+    4300006: Button 3
+    4300008: Button 4
+    4300010: Button Bases
+    4300012: LED 1
+    4300014: LED 1 Ploded
+    4300016: LED 2
+    4300018: LED 2 Ploded
+    4300020: LED 3
+    4300022: LED 3 Ploded
+    4300024: LED 4
+    4300026: LED 4 Ploded
+    4300028: LED Legs
+    4300030: ScreenBoard
+    4300032: Screen
+    4300034: Screws
+    4300036: Solders
+    4300038: Strip
+    4300040: Button1HL
+    4300042: Button2HL
+    4300044: Button3HL
+    4300046: Button4HL
+    4300048: Text
+    4300050: LED 1 Legs
+    4300052: LED 2 Legs
+    4300054: LED 3 Legs
+    4300056: LED 4 Legs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
