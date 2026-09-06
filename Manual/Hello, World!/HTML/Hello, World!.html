@@ -352,45 +352,45 @@
 
     const QuestionType = Object.freeze({
         ColourLabelled: "ColourLabelled",
-		ColourNotLabelled: "ColourNotLabelled",
-		ColourLabelledorLabelled: "ColourLabelledorLabelled",
-		ColourInPosOrPos: "ColourInPosOrPos",
+        ColourNotLabelled: "ColourNotLabelled",
+        ColourLabelledorLabelled: "ColourLabelledorLabelled",
+        ColourInPosOrPos: "ColourInPosOrPos",
 
-		LabelInPos: "LabelInPos",
-		LabelNotInPos: "LabelNotInPos",
-		LabelIsColourorColour: "LabelIsColourorColour",
-		LabelInPosOrPos: "LabelInPosOrPos",
+        LabelInPos: "LabelInPos",
+        LabelNotInPos: "LabelNotInPos",
+        LabelIsColourorColour: "LabelIsColourorColour",
+        LabelInPosOrPos: "LabelInPosOrPos",
 
-		PosIsColour: "PosIsColour",
-		PosNotColour: "PosNotColour",
-		PosColourOrColour: "PosColourOrColour",
-		PosLabelledorLabelled: "PosLabelledorLabelled",
+        PosIsColour: "PosIsColour",
+        PosNotColour: "PosNotColour",
+        PosColourOrColour: "PosColourOrColour",
+        PosLabelledorLabelled: "PosLabelledorLabelled",
 
-		TwoLabelsAdjacent: "TwoLabelsAdjacent",
-		TwoColoursAdjacent: "TwoColoursAdjacent",
+        TwoLabelsAdjacent: "TwoLabelsAdjacent",
+        TwoColoursAdjacent: "TwoColoursAdjacent",
 
-		LabelAfterLabel: "LabelAfterLabel",
-		ColourAfterColour: "ColourAfterColour",
+        LabelAfterLabel: "LabelAfterLabel",
+        ColourAfterColour: "ColourAfterColour",
 
-		OverMisspelled: "OverMisspelled",
-		UnderMisspelled: "UnderMisspelled",
-		ExactlyMisspelled: "ExactlyMisspelled",
+        OverMisspelled: "OverMisspelled",
+        UnderMisspelled: "UnderMisspelled",
+        ExactlyMisspelled: "ExactlyMisspelled",
 
-		OverMissing: "OverMissing",
-		UnderMissing: "UnderMissing",
-		ExactlyMissing: "ExactlyMissing",
+        OverMissing: "OverMissing",
+        UnderMissing: "UnderMissing",
+        ExactlyMissing: "ExactlyMissing",
 
-		OverExtra: "OverExtra",
-		UnderExtra: "UnderExtra",
-		ExactlyExtra: "ExactlyExtra",
+        OverExtra: "OverExtra",
+        UnderExtra: "UnderExtra",
+        ExactlyExtra: "ExactlyExtra",
 
-		OverTypes: "OverTypes",
-		UnderTypes: "UnderTypes",
-		ExactlyTypes: "ExactlyTypes",
+        OverTypes: "OverTypes",
+        UnderTypes: "UnderTypes",
+        ExactlyTypes: "ExactlyTypes",
 
-		AssignBeforeDeclare: "AssignBeforeDeclare",
-		ReadBeforeDeclare: "ReadBeforeDeclare",
-		ReadBeforeAssign: "ReadBeforeAssign"
+        AssignBeforeDeclare: "AssignBeforeDeclare",
+        ReadBeforeDeclare: "ReadBeforeDeclare",
+        ReadBeforeAssign: "ReadBeforeAssign"
     });
 
     const FlipType = Object.freeze({
@@ -410,55 +410,55 @@
             this.FlipsActualText = [];
             this.ShowDisclaimer = false
         }
-	}
+    }
 
     function PositionsToFlip(rnd)
-	{
-		let intList = [];
-		while(intList.length == 0)
-		{
-			for(let i = 0; i < 4; i++)
-			{
-				if(rnd.nextMax(2) == 1)
-				{
-					intList.push(i + 1);
-				}
-			}
-		}
-		return intList;
-	}
+    {
+        let intList = [];
+        while(intList.length == 0)
+        {
+            for(let i = 0; i < 4; i++)
+            {
+                if(rnd.nextMax(2) == 1)
+                {
+                    intList.push(i + 1);
+                }
+            }
+        }
+        return intList;
+    }
 
     function ColoursToFlip(rnd)
-	{
-		let matList = [];
-		while(matList.length == 0)
-		{
-			for(let i = 0; i < 4; i++)
-			{
-				if(rnd.nextMax(2) == 1)
-				{
-					matList.push(ButtonMats[i]);
-				}
-			}
-		}
-		return matList;
-	}
+    {
+        let matList = [];
+        while(matList.length == 0)
+        {
+            for(let i = 0; i < 4; i++)
+            {
+                if(rnd.nextMax(2) == 1)
+                {
+                    matList.push(ButtonMats[i]);
+                }
+            }
+        }
+        return matList;
+    }
 
     function LabelsToFlip(rnd)
-	{
-		let matList = [];
-		while(matList.length == 0)
-		{
-			for(let i = 0; i < 4; i++)
-			{
-				if(rnd.nextMax(2) == 1)
-				{
-					matList.push(`\"${WritingMats[i]}\"`);
-				}
-			}
-		}
-		return matList;
-	}
+    {
+        let matList = [];
+        while(matList.length == 0)
+        {
+            for(let i = 0; i < 4; i++)
+            {
+                if(rnd.nextMax(2) == 1)
+                {
+                    matList.push(`\"${WritingMats[i]}\"`);
+                }
+            }
+        }
+        return matList;
+    }
 
     function Choose(rnd)
     {
@@ -485,479 +485,382 @@
 
     function MakeQuestion(questiontype, rnd)
     {
-        let Colour1, Colour2, Label1, Label2, Pos1, Pos2, Plural, Chosen, ThisFlipType, ReturnedQuestion;
+        let Colour1, Colour2, Label1, Label2, Pos1, Pos2, Plural, Chosen, ThisFlipType;
         let LightsToFlip = [];
+        let ReturnedQuestion = new Question;
         switch(questiontype)
         {
             case QuestionType.ColourLabelled:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Label1 = WritingMats[rnd.nextMax(4)];
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Label1 = WritingMats[rnd.nextMax(4)];
                 Chosen = Choose(rnd);
-                ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} button is labelled \"${Label1}\".`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ColourNotLabelled:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Label1 = WritingMats[rnd.nextMax(4)];
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Label1 = WritingMats[rnd.nextMax(4)];
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} button is not labelled \"${Label1}\".`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ColourLabelledorLabelled:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Label2 = WritingMats[rnd.nextMax(4)];
-				while(Label1 == Label2)
-				{
-					Label2 = WritingMats[rnd.nextMax(4)];
-				}
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Label2 = WritingMats[rnd.nextMax(4)];
+                while(Label1 == Label2)
+                {
+                    Label2 = WritingMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} button is labelled \"${Label1}\" or \"${Label2}\".`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ColourInPosOrPos:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Pos1 = rnd.nextMax(4);
-				Pos2 = rnd.nextMax(4);
-				while(Pos1 == Pos2)
-				{
-					Pos2 = rnd.nextMax(4);
-				}
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
+                Pos2 = rnd.nextMax(4);
+                while(Pos1 == Pos2)
+                {
+                    Pos2 = rnd.nextMax(4);
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} button is in position ${Pos1 + 1} or ${Pos2 + 1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.LabelInPos:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Pos1 = rnd.nextMax(4);
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The \"${Label1}\" button is in position ${Pos1 + 1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.LabelNotInPos:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Pos1 = rnd.nextMax(4);
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The \"${Label1}\" button is not in position ${Pos1 + 1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.LabelIsColourorColour:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Colour2 = ButtonMats[rnd.nextMax(4)];
-				while(Colour1 == Colour2)
-				{
-					Colour2 = ButtonMats[rnd.nextMax(4)];
-				}
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Colour2 = ButtonMats[rnd.nextMax(4)];
+                while(Colour1 == Colour2)
+                {
+                    Colour2 = ButtonMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The \"${Label1}\" button is ${Colour1} or ${Colour2}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.LabelInPosOrPos:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Pos1 = rnd.nextMax(4);
-				Pos2 = rnd.nextMax(4);
-				while(Pos1 == Pos2)
-				{
-					Pos2 = rnd.nextMax(4);
-				}
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
+                Pos2 = rnd.nextMax(4);
+                while(Pos1 == Pos2)
+                {
+                    Pos2 = rnd.nextMax(4);
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The \"${Label1}\" button is in position ${Pos1 + 1} or ${Pos2 + 1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.PosIsColour:
-				Pos1 = rnd.nextMax(4);
-				Colour1 = ButtonMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
+                Colour1 = ButtonMats[rnd.nextMax(4)];
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The button in position ${Pos1 + 1} is ${Colour1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.PosNotColour:
-				Pos1 = rnd.nextMax(4);
-				Colour1 = ButtonMats[rnd.nextMax(4)];
+                Pos1 = rnd.nextMax(4);
+                Colour1 = ButtonMats[rnd.nextMax(4)];
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The button in position ${Pos1 + 1} is not ${Colour1}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.PosColourOrColour:
-				Pos1 = rnd.nextMax(4);
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Colour2 = ButtonMats[rnd.nextMax(4)];
-				while(Colour1 == Colour2)
-				{
-					Colour2 = ButtonMats[rnd.nextMax(4)];
-				}
+                Pos1 = rnd.nextMax(4);
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Colour2 = ButtonMats[rnd.nextMax(4)];
+                while(Colour1 == Colour2)
+                {
+                    Colour2 = ButtonMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The button in position ${Pos1 + 1} is ${Colour1} or ${Colour2}.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.PosLabelledorLabelled:
-				Pos1 = rnd.nextMax(4);
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Label2 = WritingMats[rnd.nextMax(4)];
-				while(Label1 == Label2)
-				{
-					Label2 = WritingMats[rnd.nextMax(4)];
-				}
+                Pos1 = rnd.nextMax(4);
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Label2 = WritingMats[rnd.nextMax(4)];
+                while(Label1 == Label2)
+                {
+                    Label2 = WritingMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The button in position ${Pos1 + 1} says \"${Label1}\" or \"${Label2}\".`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.TwoLabelsAdjacent:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Label2 = WritingMats[rnd.nextMax(4)];
-				while(Label1 == Label2)
-				{
-					Label2 = WritingMats[rnd.nextMax(4)];
-				}
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Label2 = WritingMats[rnd.nextMax(4)];
+                while(Label1 == Label2)
+                {
+                    Label2 = WritingMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The buttons labelled \"${Label1}\" and \"${Label2}\" are directly next to each other.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.TwoColoursAdjacent:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Colour2 = ButtonMats[rnd.nextMax(4)];
-				while(Colour1 == Colour2)
-				{
-					Colour2 = ButtonMats[rnd.nextMax(4)];
-				}
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Colour2 = ButtonMats[rnd.nextMax(4)];
+                while(Colour1 == Colour2)
+                {
+                    Colour2 = ButtonMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} and ${Colour2} buttons are directly next to each other.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.LabelAfterLabel:
-				Label1 = WritingMats[rnd.nextMax(4)];
-				Label2 = WritingMats[rnd.nextMax(4)];
-				while(Label1 == Label2)
-				{
-					Label2 = WritingMats[rnd.nextMax(4)];
-				}
+                Label1 = WritingMats[rnd.nextMax(4)];
+                Label2 = WritingMats[rnd.nextMax(4)];
+                while(Label1 == Label2)
+                {
+                    Label2 = WritingMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The \"${Label1}\" button's position is further left than the \"${Label2}\" button.`;
-				ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ColourAfterColour:
-				Colour1 = ButtonMats[rnd.nextMax(4)];
-				Colour2 = ButtonMats[rnd.nextMax(4)];
-				while(Colour1 == Colour2)
-				{
-					Colour2 = ButtonMats[rnd.nextMax(4)];
-				}
+                Colour1 = ButtonMats[rnd.nextMax(4)];
+                Colour2 = ButtonMats[rnd.nextMax(4)];
+                while(Colour1 == Colour2)
+                {
+                    Colour2 = ButtonMats[rnd.nextMax(4)];
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `The ${Colour1} button's position is further left than the ${Colour2} button.`;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.OverMisspelled:
-				Pos1 = rnd.next(1,4);
-
-				if(Pos1 == 1)
-				{
-					Plural = "There is at least 1 misspelled keyword<sup>[5]</sup>.";
-				}
-				else
-				{
-					Plural = `There are at least ${Pos1} misspelled keywords<sup>[5]</sup>.`;
-				}
+                Pos1 = rnd.next(1,4);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is at least 1 misspelled keyword<sup>[5]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are at least ${Pos1} misspelled keywords<sup>[5]</sup>.`;
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.UnderMisspelled:
-				Pos1 = rnd.nextMax(4);
-
-				if(Pos1 == 0)
-				{
-					Plural = "There are no misspelled keywords<sup>[5]</sup>.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 misspelled keyword<sup>[5]</sup>.";
-				}
-				else
-				{
-					Plural = `There are no more than ${Pos1} misspelled keywords<sup>[5]</sup>.`;
-				}
+                Pos1 = rnd.nextMax(4);
+                if(Pos1 == 0)
+                {
+                    Plural = "There are no misspelled keywords<sup>[5]</sup>.";
+                }
+                else if (Pos1 == 1)
+                {
+                    Plural = "There is no more than 1 misspelled keyword<sup>[5]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are no more than ${Pos1} misspelled keywords<sup>[5]</sup>.`;
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ExactlyMisspelled:
-				Pos1 = rnd.next(1,4);
-
-				if(Pos1 == 1)
-				{
-					Plural = "There is exactly 1 misspelled keyword<sup>[5]</sup>.";
-				}
-				else
-				{
-					Plural = `There are exactly ${Pos1} misspelled keywords<sup>[5]</sup>.`;
-				}
+                Pos1 = rnd.next(1,4);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is exactly 1 misspelled keyword<sup>[5]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are exactly ${Pos1} misspelled keywords<sup>[5]</sup>.`;
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.OverMissing:
-				Pos1 = rnd.next(1,3);
-				if(Pos1 == 1)
-				{
-					Plural = "There is at least 1 missing semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = "There are at least 2 missing semicolons<sup>[4]</sup>.";
-				}
+                Pos1 = rnd.next(1,3);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is at least 1 missing semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are at least 2 missing semicolons<sup>[4]</sup>.";
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.UnderMissing:
-				Pos1 = rnd.nextMax(3);
+                Pos1 = rnd.nextMax(3);
 
-				if(Pos1 == 0)
-				{
-					Plural = "There are no missing semicolons<sup>[4]</sup>.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 missing semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = "There are no more than 2 missing semicolons<sup>[4]</sup>.";
-				}
+                if(Pos1 == 0)
+                {
+                    Plural = "There are no missing semicolons<sup>[4]</sup>.";
+                }
+                else if (Pos1 == 1)
+                {
+                    Plural = "There is no more than 1 missing semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are no more than 2 missing semicolons<sup>[4]</sup>.";
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ExactlyMissing:
-				Pos1 = rnd.next(1,4);
+                Pos1 = rnd.next(1,4);
 
-				if(Pos1 == 1)
-				{
-					Plural = "There is exactly 1 missing semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = `There are exactly ${Pos1} missing semicolons<sup>[4]</sup>.`;
-				}
-				Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
+                if(Pos1 == 1)
+                {
+                    Plural = "There is exactly 1 missing semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are exactly ${Pos1} missing semicolons<sup>[4]</sup>.`;
+                }
+                Chosen = Choose(rnd);
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.OverExtra:
-				Pos1 = rnd.next(1,3);
-				if(Pos1 == 1)
-				{
-					Plural = "There is at least 1 extra semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = "There are at least 2 extra semicolons<sup>[4]</sup>.";
-				}
+                Pos1 = rnd.next(1,3);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is at least 1 extra semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are at least 2 extra semicolons<sup>[4]</sup>.";
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.UnderExtra:
-				Pos1 = rnd.nextMax(3);
-
-				if(Pos1 == 0)
-				{
-					Plural = "There are no extra semicolons<sup>[4]</sup>.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 extra semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = "There are no more than 2 extra semicolons<sup>[4]</sup>.";
-				}
+                Pos1 = rnd.nextMax(3);
+                if(Pos1 == 0)
+                {
+                    Plural = "There are no extra semicolons<sup>[4]</sup>.";
+                }
+                else if (Pos1 == 1)
+                {
+                    Plural = "There is no more than 1 extra semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are no more than 2 extra semicolons<sup>[4]</sup>.";
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ExactlyExtra:
-				Pos1 = rnd.next(1,4);
-
-				if(Pos1 == 1)
-				{
-					Plural = "There is exactly 1 extra semicolon<sup>[4]</sup>.";
-				}
-				else
-				{
-					Plural = `There are exactly ${Pos1} extra semicolons<sup>[4]</sup>.`;
-				}
-				Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
+                Pos1 = rnd.next(1,4);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is exactly 1 extra semicolon<sup>[4]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are exactly ${Pos1} extra semicolons<sup>[4]</sup>.`;
+                }
+                Chosen = Choose(rnd);
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.OverTypes:
-				Pos1 = rnd.next(1,3);
-				if(Pos1 == 1)
-				{
-					Plural = "There is at least 1 type mismatch<sup>[3]</sup>.";
-				}
-				else
-				{
-					Plural = "There are at least 2 type mismatches<sup>[3]</sup>.";
-				}
-				Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
+                Pos1 = rnd.next(1,3);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is at least 1 type mismatch<sup>[3]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are at least 2 type mismatches<sup>[3]</sup>.";
+                }
+                Chosen = Choose(rnd);
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.UnderTypes:
-				Pos1 = rnd.nextMax(3);
-
-				if(Pos1 == 0)
-				{
-					Plural = "There are no type mismatches<sup>[3]</sup>.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 type mismatch<sup>[3]</sup>.";
-				}
-				else
-				{
-					Plural = "There are no more than 2 type mismatches<sup>[3]</sup>.";
-				}
-				Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
+                Pos1 = rnd.nextMax(3);
+                if(Pos1 == 0)
+                {
+                    Plural = "There are no type mismatches<sup>[3]</sup>.";
+                }
+                else if (Pos1 == 1)
+                {
+                    Plural = "There is no more than 1 type mismatch<sup>[3]</sup>.";
+                }
+                else
+                {
+                    Plural = "There are no more than 2 type mismatches<sup>[3]</sup>.";
+                }
+                Chosen = Choose(rnd);
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.ExactlyTypes:
-				Pos1 = rnd.next(1,3);
-
-				if(Pos1 == 1)
-				{
-					Plural = "There is exactly 1 type mismatch<sup>[3]</sup>.";
-				}
-				else
-				{
-					Plural = `There are exactly ${Pos1} type mismatches<sup>[3]</sup>.`;
-				}
+                Pos1 = rnd.next(1,3);
+                if(Pos1 == 1)
+                {
+                    Plural = "There is exactly 1 type mismatch<sup>[3]</sup>.";
+                }
+                else
+                {
+                    Plural = `There are exactly ${Pos1} type mismatches<sup>[3]</sup>.`;
+                }
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = Plural;
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
-				return ReturnedQuestion;
+                break;
 
             case QuestionType.AssignBeforeDeclare:
                 Chosen = Choose(rnd);
-                ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = "The program tried to assign to a variable before it was declared<sup>[3]</sup>.<b>*</b>";
-                ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
                 ReturnedQuestion.ShowDisclaimer = true;
-			    return ReturnedQuestion;
+                break;
 
             case QuestionType.ReadBeforeDeclare:
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
-				ReturnedQuestion.QuestionText = "The program tried to read a variable before it was declared<sup>[3]</sup>.<b>*</b>";
-				ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
+                ReturnedQuestion.QuestionText = "The program tried to read a variable before it was declared<sup>[3]</sup>.<b>*</b>";
                 ReturnedQuestion.ShowDisclaimer = true;
-			    return ReturnedQuestion;
+                break;
 
             case QuestionType.ReadBeforeAssign:
                 Chosen = Choose(rnd);
-				ReturnedQuestion = new Question;
-				ReturnedQuestion.QuestionText = "The program tried to read a variable before it was assigned to<sup>[3]</sup>.<b>*</b>";
-				ReturnedQuestion.FlippedLights = Chosen[1];
-                ReturnedQuestion.flipType = Chosen[0];
+                ReturnedQuestion.QuestionText = "The program tried to read a variable before it was assigned to<sup>[3]</sup>.<b>*</b>";
                 ReturnedQuestion.ShowDisclaimer = true;
-			    return ReturnedQuestion;
+                break;
 
             default:
-                ReturnedQuestion = new Question;
                 ReturnedQuestion.QuestionText = `${questiontype} NOT yet implemented.`;
                 ReturnedQuestion.FlippedLights = ["NOT yet implemented."];
                 ReturnedQuestion.flipType = ["NOT yet implemented."];
-				return ReturnedQuestion;
+                return ReturnedQuestion;
         }
+        ReturnedQuestion.FlippedLights = Chosen[1];
+        ReturnedQuestion.flipType = Chosen[0];
+        return ReturnedQuestion;
     }
 
     let rnd = new MonoRandom();
@@ -990,16 +893,7 @@
     }
     function setDefaultRules(rnd)
     {
-        const AllQuestionTypes = Object.values(QuestionType);
-        rnd.shuffleFisherYates(AllQuestionTypes);
-
-        for(let i = 0; i < 10; i++)
-        {
-            let CurrentQuestion = MakeQuestion(AllQuestionTypes[i], rnd);
-            document.querySelector(`span.Rule[id = "${i}"]`).innerHTML = CurrentQuestion.QuestionText;
-            document.querySelector(`span.Flips[id = "${i}"]`).innerHTML = CurrentQuestion.flipType + (CurrentQuestion.FlippedLights.length > 1 ? "s" : "") + ": " + CurrentQuestion.FlippedLights.join(', ');
-        }
-        document.getElementById('Disclaimer').innerText = '';
+        setRules(rnd);
     }
 </script>
 </html>

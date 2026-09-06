@@ -50,6 +50,11 @@ public class HelloWorldScript : MonoBehaviour {
 	bool ReadBeforeDeclared = false;
 	bool ReadBeforeAssigned = false;
 
+	//In case the puzzle needs to be regenerated, this bool locks it out of generating ruleseeded rules again
+	//(Which makes bad stuff happen)
+	bool RulesGenerated = false;
+
+	Question[] QuestionList = new Question[10];
 	int[] FlipCount = new int[]{0, 0, 0, 0};
 
 	//In each subarray, index 0 = supposed, index 1 = alternate
@@ -169,6 +174,13 @@ public class HelloWorldScript : MonoBehaviour {
 		//In case the puzzle needs to be regenerated
 		ButtonColours = new Material[]{null, null, null, null};
 		Writings = new Material[]{null, null, null, null};
+		ExtraSemicolons = 0;
+		MissingSemicolons = 0;
+		MisspelledKeywords = 0;
+		TypeMismatches = 0;
+		AssignedBeforeDeclared = false;
+		ReadBeforeDeclared = false;
+		ReadBeforeAssigned = false;
 
 		//Arrange the button colours & text randomly
 		for (int i = 0; i < 4; i++)
@@ -209,7 +221,7 @@ public class HelloWorldScript : MonoBehaviour {
 
 		//Create the screen text
 		StartText[1] = "{";
-		StartText[3] = "    {";
+		StartText[3] = "  {";
 		for (int i = 0; i < 3; i++)
 		{
 			if (UnityEngine.Random.Range(0, 3) == 0)
@@ -220,7 +232,7 @@ public class HelloWorldScript : MonoBehaviour {
 			}
 		}
 		StartText[0] = $"{darkblue}{beginningWords[0]} {beginningWords[1]}{end} {green}Program{end}";
-		StartText[2] = $"{darkblue}{beginningWords[2]}{end} {yellow}Main{end}()";
+		StartText[2] = $"  {darkblue}{beginningWords[2]}{end} {yellow}Main{end}()";
 		for (int i = 0; i < 3; i += 2)
 		{
 			if (UnityEngine.Random.Range(0, 3) == 0)
@@ -1142,10 +1154,11 @@ public class HelloWorldScript : MonoBehaviour {
 		ShuffledLines.Add("}");
 
 		//Simulate indentation
-		for(int i = 0; i < ShuffledLines.Count; i++)
+		for(int i = 0; i < ShuffledLines.Count - 1; i++)
 		{
 			ShuffledLines[i] = "    " + ShuffledLines[i];
 		}
+		ShuffledLines[ShuffledLines.Count - 1] = "  " + ShuffledLines[ShuffledLines.Count - 1];
 
 		ShuffledLines.Add("}");
 		
@@ -1168,14 +1181,17 @@ public class HelloWorldScript : MonoBehaviour {
 
 		//Shuffle the AllQuestionTypes array so that picking the first 10 items yields 10 random question types with no repeats
 		MonoRandom rnd = RuleSeedable.GetRNG();
-		rnd.ShuffleFisherYates(AllQuestionTypes);
 
-		Question[] QuestionList = new Question[10];
+		if(!RulesGenerated)
+		{
+			rnd.ShuffleFisherYates(AllQuestionTypes);
+		}
+
 		FlipCount = new int[]{0, 0, 0, 0};
 		string[] LogArray = new string[10];
 		for(int i = 0; i < 10; i++)
 		{
-			QuestionList[i] = MakeQuestion(AllQuestionTypes[i], rnd);
+			QuestionList[i] = MakeQuestion(AllQuestionTypes[i], rnd, i);
 			if(QuestionList[i].IsTrue)
 			{
 				foreach(int num in QuestionList[i].FlippedLights)
@@ -1184,14 +1200,23 @@ public class HelloWorldScript : MonoBehaviour {
 				}
 			}
 
-			//map positions [0, 1, 2, 3] to [1, 2, 3, 4] for logging
+			//Map positions [0, 1, 2, 3] to [1, 2, 3, 4] for logging
 			for(int j = 0; j < QuestionList[i].FlippedLights.Count; j++)
 			{
 				QuestionList[i].FlippedLights[j]++;
 			}
+			
 			Debug.Log($"{QuestionList[i].QuestionText} [{QuestionList[i].flipType}/s: {((QuestionList[i].flipType != FlipType.Position) ? ($"{string.Join(" ", QuestionList[i].ColourOrLabelFlips.Select(x => x.name).ToArray())}] [Equivalent Position/s: ") : (""))}{string.Join(" ", QuestionList[i].FlippedLights.Select(x => x.ToString()).ToArray())}] [{QuestionList[i].IsTrue}] [Accumulated flips: {string.Join(" ", FlipCount.Select(x => x.ToString()).ToArray())}]");
-			LogArray[i] = $"{QuestionList[i].QuestionText} [{QuestionList[i].flipType}/s: {((QuestionList[i].flipType != FlipType.Position) ? ($"{string.Join(" ", QuestionList[i].ColourOrLabelFlips.Select(x => x.name).ToArray())}] [Equivalent Position/s: ") : (""))}{string.Join(" ", QuestionList[i].FlippedLights.Select(x => x.ToString()).ToArray())}] [{QuestionList[i].IsTrue}] [Accumulated flips: {string.Join(" ", FlipCount.Select(x => x.ToString()).ToArray())}]";
+			LogArray[i] = $"{QuestionList[i].QuestionText} [{QuestionList[i].flipType}/s: {((QuestionList[i].flipType != FlipType.Position) ? ($"{string.Join(" ", QuestionList[i].ColourOrLabelFlips.Select(x => x.name).ToArray())}] [Equivalent Position/s: ") : (""))}{string.Join(" ", QuestionList[i].FlippedLights.Select(x => x.ToString()).ToArray())}] [{QuestionList[i].IsTrue}] {(QuestionList[i].IsTrue ? $"[Accumulated flips: {string.Join(" ", FlipCount.Select(x => x.ToString()).ToArray())}]" : "")}";
+			
+			//Map the positions back to [0, 1, 2, 3] in case the puzzle needs to be regenerated, in which case each FlippedLights needs to be read from
+			for(int j = 0; j < QuestionList[i].FlippedLights.Count; j++)
+			{
+				QuestionList[i].FlippedLights[j]--;
+			}
 		}
+
+		RulesGenerated = true;
 
 		for(int i = 0; i < 4; i++)
 		{
@@ -1201,19 +1226,29 @@ public class HelloWorldScript : MonoBehaviour {
 
 		if(!FlipCount.Contains(1))
 		{
-			Debug.Log("Solution has no off lights! Regenerating puzzle..");
+			Debug.Log($"Solution to Hello World #{moduleId} has no off lights! Regenerating puzzle..");
 			Start();
+			return;
 		}
-		
+		Log("The screen said:");
+		string[] LogScreenText = Regex.Split(ScreenText.text, Regex.Escape("\n"));
+		for(int i = 0; i < LogScreenText.Length; i++)
+		{
+			LogScreenText[i] = Regex.Replace(LogScreenText[i], @"<.+?>", "");
+			Log(LogScreenText[i]);
+		}
 		Log($"The buttons were labelled: {string.Join(" ", Writings.Select(x => $"[{x.name}]").ToArray())}");
 		Log($"The buttons were coloured: {string.Join(", ", ButtonColours.Select(x => x.name).ToArray())}");
-		Log($"The screen said:\n{ScreenText.text}");
-		Log($"The solution with ruleseed {RuleSeedable.GetRNG().Seed} was:\n{string.Join("\n",LogArray)}");
+		Log($"The solution with ruleseed {RuleSeedable.GetRNG().Seed} was:");
+		foreach(string line in LogArray)
+		{
+			Log(line);
+		}
 		Log($"The answer was: {string.Join(", ", FlipCount.Select(x => (x == 0 ? "on" : "off")).ToArray())}");
 
 
-		Debug.Log(string.Join(", ", Div0Indices.Select(x => x.ToString()).ToArray()));
-		Debug.Log(string.Join(", ", Div1Indices.Select(x => x.ToString()).ToArray()));
+		//Debug.Log(string.Join(", ", Div0Indices.Select(x => x.ToString()).ToArray()));
+		//Debug.Log(string.Join(", ", Div1Indices.Select(x => x.ToString()).ToArray()));
 
 		Settings = new HelloWorldSettings{};
 
@@ -1240,7 +1275,7 @@ public class HelloWorldScript : MonoBehaviour {
 				ModSettings.Settings = defaultJson;
 			}
 		}
-		Debug.Log("The SecondsBeforeCheck is set to: " + Settings.SecondsBeforeCheck);
+		//Debug.Log("The SecondsBeforeCheck is set to: " + Settings.SecondsBeforeCheck);
 	}
 
 
@@ -1265,6 +1300,8 @@ public class HelloWorldScript : MonoBehaviour {
 
 	void ButtonDown(KMSelectable button)
     {
+		button.AddInteractionPunch();
+		Audio.PlaySoundAtTransform("Down", transform);
 		position = button.transform.localPosition;
 		position.y = 0.026f;
 		button.transform.localPosition = position;
@@ -1278,6 +1315,7 @@ public class HelloWorldScript : MonoBehaviour {
 	
     void ButtonUp(KMSelectable button)
     {
+		Audio.PlaySoundAtTransform("Up", transform);
 		ButtonStates[Array.IndexOf(Buttons, button)]++;
 		ButtonStates[Array.IndexOf(Buttons, button)] %= 3;
         position = button.transform.localPosition;
@@ -1395,6 +1433,12 @@ public class HelloWorldScript : MonoBehaviour {
 		public List<int> FlippedLights;
 		public FlipType flipType;
 		public List<Material> ColourOrLabelFlips;
+		public Material ColourOne;
+		public Material ColourTwo;
+		public Material LabelOne;
+		public Material LabelTwo;
+		public int PosOne;
+		public int PosTwo;
 	}
 
 	QuestionType[] AllQuestionTypes = (QuestionType[])Enum.GetValues(typeof(QuestionType));
@@ -1447,7 +1491,7 @@ public class HelloWorldScript : MonoBehaviour {
 		return matList;
 	}
 
-	Question MakeQuestion(QuestionType questiontype, MonoRandom rnd)
+	Question MakeQuestion(QuestionType questiontype, MonoRandom rnd, int QuestionNumber)
 	{
 		Material Colour1;
 		Material Colour2;
@@ -1467,1309 +1511,1728 @@ public class HelloWorldScript : MonoBehaviour {
 		switch(questiontype)
 		{
 			case QuestionType.ColourLabelled:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Label1 = WritingMats[rnd.Next(4)];
-				
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Colour1 = ButtonMats[rnd.Next(4)];
+					Label1 = WritingMats[rnd.Next(4)];
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
+				else
+				{
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button is labelled \"{Label1.name}\".",
 					IsTrue = (Array.IndexOf(ButtonColours, Colour1) == Array.IndexOf(Writings, Label1)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					LabelOne = Label1
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ColourNotLabelled:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Label1 = WritingMats[rnd.Next(4)];
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Colour1 = ButtonMats[rnd.Next(4)];
+					Label1 = WritingMats[rnd.Next(4)];
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
+				else
+				{
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button is not labelled \"{Label1.name}\".",
 					IsTrue = (Array.IndexOf(ButtonColours, Colour1) != Array.IndexOf(Writings, Label1)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					LabelOne = Label1
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ColourLabelledorLabelled:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Label1 = WritingMats[rnd.Next(4)];
-				Label2 = WritingMats[rnd.Next(4)];
-				while(Label1 == Label2)
+				if(!RulesGenerated)
 				{
+					Colour1 = ButtonMats[rnd.Next(4)];
+					Label1 = WritingMats[rnd.Next(4)];
 					Label2 = WritingMats[rnd.Next(4)];
-				}
+					while(Label1 == Label2)
+					{
+						Label2 = WritingMats[rnd.Next(4)];
+					}
 
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Label2 = QuestionList[QuestionNumber].LabelTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button is labelled \"{Label1.name}\" or \"{Label2.name}\".",
 					IsTrue = ((Array.IndexOf(ButtonColours, Colour1) == Array.IndexOf(Writings, Label1)) || (Array.IndexOf(ButtonColours, Colour1) == Array.IndexOf(Writings, Label2))),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					LabelOne = Label1,
+					LabelTwo = Label2
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ColourInPosOrPos:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Pos1 = rnd.Next(4);
-				Pos2 = rnd.Next(4);
-				while(Pos1 == Pos2)
+				if(!RulesGenerated)
 				{
+					Colour1 = ButtonMats[rnd.Next(4)];
+					Pos1 = rnd.Next(4);
 					Pos2 = rnd.Next(4);
+					while(Pos1 == Pos2)
+					{
+						Pos2 = rnd.Next(4);
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Pos2 = QuestionList[QuestionNumber].PosTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button is in position {Pos1 + 1} or {Pos2 + 1}.",
 					IsTrue = ((Array.IndexOf(ButtonColours, Colour1) == Pos1) || (Array.IndexOf(ButtonColours, Colour1) == Pos2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					PosOne = Pos1,
+					PosTwo = Pos2
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.LabelInPos:
-				Label1 = WritingMats[rnd.Next(4)];
-				Pos1 = rnd.Next(4);
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Label1 = WritingMats[rnd.Next(4)];
+					Pos1 = rnd.Next(4);
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
+				else
+				{
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The \"{Label1.name}\" button is in position {Pos1 + 1}.",
 					IsTrue = (Array.IndexOf(Writings, Label1) == Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					PosOne = Pos1
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.LabelNotInPos:
-				Label1 = WritingMats[rnd.Next(4)];
-				Pos1 = rnd.Next(4);
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Label1 = WritingMats[rnd.Next(4)];
+					Pos1 = rnd.Next(4);
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
+				else
+				{
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The \"{Label1.name}\" button is not in position {Pos1 + 1}.",
 					IsTrue = (Array.IndexOf(Writings, Label1) != Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					PosOne = Pos1
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.LabelIsColourorColour:
-				Label1 = WritingMats[rnd.Next(4)];
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Colour2 = ButtonMats[rnd.Next(4)];
-				while(Colour1 == Colour2)
+				if(!RulesGenerated)
 				{
+					Label1 = WritingMats[rnd.Next(4)];
+					Colour1 = ButtonMats[rnd.Next(4)];
 					Colour2 = ButtonMats[rnd.Next(4)];
-				}
+					while(Colour1 == Colour2)
+					{
+						Colour2 = ButtonMats[rnd.Next(4)];
+					}
 
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Colour2 = QuestionList[QuestionNumber].ColourTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The \"{Label1.name}\" button is {Colour1.name} or {Colour2.name}.",
 					IsTrue = ((Array.IndexOf(Writings, Label1) == Array.IndexOf(ButtonColours, Colour1)) || (Array.IndexOf(Writings, Label1) == Array.IndexOf(ButtonColours, Colour2))),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					ColourOne = Colour1,
+					ColourTwo = Colour2
 					};
 				return ReturnedQuestion;
 
 
 			case QuestionType.LabelInPosOrPos:
-				Label1 = WritingMats[rnd.Next(4)];
-				Pos1 = rnd.Next(4);
-				Pos2 = rnd.Next(4);
-				while(Pos1 == Pos2)
+				if(!RulesGenerated)
 				{
+					Label1 = WritingMats[rnd.Next(4)];
+					Pos1 = rnd.Next(4);
 					Pos2 = rnd.Next(4);
-				}
+					while(Pos1 == Pos2)
+					{
+						Pos2 = rnd.Next(4);
+					}
 
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Pos2 = QuestionList[QuestionNumber].PosTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The \"{Label1.name}\" button is in position {Pos1 + 1} or {Pos2 + 1}.",
 					IsTrue = ((Array.IndexOf(Writings, Label1) == Pos1) || (Array.IndexOf(Writings, Label1) == Pos2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					PosOne = Pos1,
+					PosTwo = Pos2
 					};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.PosIsColour:
-				Pos1 = rnd.Next(4);
-				Colour1 = ButtonMats[rnd.Next(4)];
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Pos1 = rnd.Next(4);
+					Colour1 = ButtonMats[rnd.Next(4)];
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
+				else
+				{
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} is {Colour1.name}.",
 					IsTrue = (ButtonColours[Pos1] == Colour1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1,
+					ColourOne = Colour1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.PosNotColour:
-				Pos1 = rnd.Next(4);
-				Colour1 = ButtonMats[rnd.Next(4)];
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					Pos1 = rnd.Next(4);
+					Colour1 = ButtonMats[rnd.Next(4)];
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
+				{
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} is not {Colour1.name}.",
 					IsTrue = (ButtonColours[Pos1] != Colour1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1,
+					ColourOne = Colour1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.PosColourOrColour:
-				Pos1 = rnd.Next(4);
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Colour2 = ButtonMats[rnd.Next(4)];
-				while(Colour1 == Colour2)
+				if(!RulesGenerated)
 				{
+					Pos1 = rnd.Next(4);
+					Colour1 = ButtonMats[rnd.Next(4)];
 					Colour2 = ButtonMats[rnd.Next(4)];
-				}
+					while(Colour1 == Colour2)
+					{
+						Colour2 = ButtonMats[rnd.Next(4)];
+					}
 
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Colour2 = QuestionList[QuestionNumber].ColourTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
+				
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} is {Colour1.name} or {Colour2.name}.",
 					IsTrue = ((ButtonColours[Pos1] == Colour1) || (ButtonColours[Pos1] == Colour2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1,
+					ColourOne = Colour1,
+					ColourTwo = Colour2
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.PosLabelledorLabelled:
-				Pos1 = rnd.Next(4);
-				Label1 = WritingMats[rnd.Next(4)];
-				Label2 = WritingMats[rnd.Next(4)];
-				while(Label1 == Label2)
+				if(!RulesGenerated)
 				{
+					Pos1 = rnd.Next(4);
+					Label1 = WritingMats[rnd.Next(4)];
 					Label2 = WritingMats[rnd.Next(4)];
+					while(Label1 == Label2)
+					{
+						Label2 = WritingMats[rnd.Next(4)];
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Label2 = QuestionList[QuestionNumber].LabelTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} says \"{Label1.name}\" or \"{Label1.name}\".",
 					IsTrue = ((Writings[Pos1] == Label1) || (Writings[Pos1] == Label2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1,
+					LabelOne = Label1,
+					LabelTwo = Label2
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.TwoLabelsAdjacent:
-				Label1 = WritingMats[rnd.Next(4)];
-				Label2 = WritingMats[rnd.Next(4)];
-				while(Label1 == Label2)
+				if(!RulesGenerated)
 				{
+					Label1 = WritingMats[rnd.Next(4)];
 					Label2 = WritingMats[rnd.Next(4)];
+					while(Label1 == Label2)
+					{
+						Label2 = WritingMats[rnd.Next(4)];
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Label2 = QuestionList[QuestionNumber].LabelTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The buttons labelled \"{Label1.name}\" and \"{Label2.name}\" are directly next to each other.",
 					IsTrue = (Math.Abs(Array.IndexOf(Writings, Label1) - Array.IndexOf(Writings, Label2)) == 1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					LabelTwo = Label2
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.TwoColoursAdjacent:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Colour2 = ButtonMats[rnd.Next(4)];
-				while(Colour1 == Colour2)
+				if(!RulesGenerated)
 				{
+					Colour1 = ButtonMats[rnd.Next(4)];
 					Colour2 = ButtonMats[rnd.Next(4)];
+					while(Colour1 == Colour2)
+					{
+						Colour2 = ButtonMats[rnd.Next(4)];
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Colour2 = QuestionList[QuestionNumber].ColourTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} and {Colour2.name} buttons are directly next to each other.",
 					IsTrue = (Math.Abs(Array.IndexOf(ButtonColours, Colour1) - Array.IndexOf(ButtonColours, Colour2)) == 1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					ColourTwo = Colour2
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.LabelAfterLabel:
-				Label1 = WritingMats[rnd.Next(4)];
-				Label2 = WritingMats[rnd.Next(4)];
-				while(Label1 == Label2)
+				if(!RulesGenerated)
 				{
+					Label1 = WritingMats[rnd.Next(4)];
 					Label2 = WritingMats[rnd.Next(4)];
+					while(Label1 == Label2)
+					{
+						Label2 = WritingMats[rnd.Next(4)];
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Label1 = QuestionList[QuestionNumber].LabelOne;
+					Label2 = QuestionList[QuestionNumber].LabelTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
-					QuestionText = $"The \"{Label1.name}\" button appears to the left of the \"{Label2.name}\" button.",
+					QuestionText = $"The \"{Label1.name}\" button's position is further left than the \"{Label2.name}\" button.",
 					IsTrue = (Array.IndexOf(Writings, Label1) < Array.IndexOf(Writings, Label2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					LabelOne = Label1,
+					LabelTwo = Label2
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ColourAfterColour:
-				Colour1 = ButtonMats[rnd.Next(4)];
-				Colour2 = ButtonMats[rnd.Next(4)];
-				while(Colour1 == Colour2)
+				if(!RulesGenerated)
 				{
+					Colour1 = ButtonMats[rnd.Next(4)];
 					Colour2 = ButtonMats[rnd.Next(4)];
+					while(Colour1 == Colour2)
+					{
+						Colour2 = ButtonMats[rnd.Next(4)];
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				else
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Colour1 = QuestionList[QuestionNumber].ColourOne;
+					Colour2 = QuestionList[QuestionNumber].ColourTwo;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
-					QuestionText = $"The {Colour1.name} button appears to the left of the {Colour2.name} button.",
+					QuestionText = $"The {Colour1.name} button's position is further left than the {Colour2.name} button.",
 					IsTrue = (Array.IndexOf(ButtonColours, Colour1) < Array.IndexOf(ButtonColours, Colour2)),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					ColourOne = Colour1,
+					ColourTwo = Colour2
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.OverMisspelled:
-				//I'm not using Pos1 as a position here, I just dont wanna create another int variable LOL
-				Pos1 = rnd.Next(1,4);
-
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is at least 1 misspelled keyword.";
+					//I'm not using Pos1 as a position here, I just dont wanna create another int variable LOL
+					Pos1 = rnd.Next(1,4);
+
+					if(Pos1 == 1)
+					{
+						Plural = "There is at least 1 misspelled keyword.";
+					}
+					else
+					{
+						Plural = $"There are at least {Pos1} misspelled keywords.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are at least {Pos1} misspelled keywords.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MisspelledKeywords >= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.UnderMisspelled:
-				Pos1 = rnd.Next(4);
+				if(!RulesGenerated)
+				{
+					Pos1 = rnd.Next(4);
 
-				if(Pos1 == 0)
-				{
-					Plural = "There are no misspelled keywords.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 misspelled keyword.";
+					if(Pos1 == 0)
+					{
+						Plural = "There are no misspelled keywords.";
+					}
+					else if (Pos1 == 1)
+					{
+						Plural = "There is no more than 1 misspelled keyword.";
+					}
+					else
+					{
+						Plural = $"There are no more than {Pos1} misspelled keywords.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are no more than {Pos1} misspelled keywords.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MisspelledKeywords <= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ExactlyMisspelled:
-				Pos1 = rnd.Next(1,4);
-
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is exactly 1 misspelled keyword.";
+					Pos1 = rnd.Next(1,4);
+
+					if(Pos1 == 1)
+					{
+						Plural = "There is exactly 1 misspelled keyword.";
+					}
+					else
+					{
+						Plural = $"There are exactly {Pos1} misspelled keywords.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are exactly {Pos1} misspelled keywords.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MisspelledKeywords == Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.OverMissing:
-				Pos1 = rnd.Next(1,3);
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is at least 1 missing semicolon.";
+					Pos1 = rnd.Next(1,3);
+					if(Pos1 == 1)
+					{
+						Plural = "There is at least 1 missing semicolon.";
+					}
+					else
+					{
+						Plural = "There are at least 2 missing semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are at least 2 missing semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MissingSemicolons >= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.UnderMissing:
-				Pos1 = rnd.Next(0,3);
+				if(!RulesGenerated)
+				{
+					Pos1 = rnd.Next(0,3);
 
-				if(Pos1 == 0)
-				{
-					Plural = "There are no missing semicolons.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 missing semicolon.";
+					if(Pos1 == 0)
+					{
+						Plural = "There are no missing semicolons.";
+					}
+					else if (Pos1 == 1)
+					{
+						Plural = "There is no more than 1 missing semicolon.";
+					}
+					else
+					{
+						Plural = "There are no more than 2 missing semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are no more than 2 missing semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MissingSemicolons <= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ExactlyMissing:
-				Pos1 = rnd.Next(1,4);
-
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is exactly 1 missing semicolon.";
+					Pos1 = rnd.Next(1,4);
+
+					if(Pos1 == 1)
+					{
+						Plural = "There is exactly 1 missing semicolon.";
+					}
+					else
+					{
+						Plural = $"There are exactly {Pos1} missing semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are exactly {Pos1} missing semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (MissingSemicolons == Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.OverExtra:
-				Pos1 = rnd.Next(1,3);
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is at least 1 extra semicolon.";
+					Pos1 = rnd.Next(1,3);
+					if(Pos1 == 1)
+					{
+						Plural = "There is at least 1 extra semicolon.";
+					}
+					else
+					{
+						Plural = "There are at least 2 extra semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are at least 2 extra semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (ExtraSemicolons >= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.UnderExtra:
-				Pos1 = rnd.Next(0,3);
+				if(!RulesGenerated)
+				{
+					Pos1 = rnd.Next(0,3);
 
-				if(Pos1 == 0)
-				{
-					Plural = "There are no extra semicolons.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 extra semicolon.";
+					if(Pos1 == 0)
+					{
+						Plural = "There are no extra semicolons.";
+					}
+					else if (Pos1 == 1)
+					{
+						Plural = "There is no more than 1 extra semicolon.";
+					}
+					else
+					{
+						Plural = "There are no more than 2 extra semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are no more than 2 extra semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (ExtraSemicolons <= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ExactlyExtra:
-				Pos1 = rnd.Next(1,4);
-
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is exactly 1 extra semicolon.";
+					Pos1 = rnd.Next(1,4);
+
+					if(Pos1 == 1)
+					{
+						Plural = "There is exactly 1 extra semicolon.";
+					}
+					else
+					{
+						Plural = $"There are exactly {Pos1} extra semicolons.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are exactly {Pos1} extra semicolons.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (ExtraSemicolons == Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 
 			case QuestionType.OverTypes:
-				Pos1 = rnd.Next(1,3);
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is at least 1 type mismatch.";
+					Pos1 = rnd.Next(1,3);
+					if(Pos1 == 1)
+					{
+						Plural = "There is at least 1 type mismatch.";
+					}
+					else
+					{
+						Plural = "There are at least 2 type mismatches.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are at least 2 type mismatches.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (TypeMismatches >= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.UnderTypes:
-				Pos1 = rnd.Next(0,3);
+				if(!RulesGenerated)
+				{
+					Pos1 = rnd.Next(0,3);
 
-				if(Pos1 == 0)
-				{
-					Plural = "There are no type mismatches.";
-				}
-				else if (Pos1 == 1)
-				{
-					Plural = "There is no more than 1 type mismatch.";
+					if(Pos1 == 0)
+					{
+						Plural = "There are no type mismatches.";
+					}
+					else if (Pos1 == 1)
+					{
+						Plural = "There is no more than 1 type mismatch.";
+					}
+					else
+					{
+						Plural = "There are no more than 2 type mismatches.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = "There are no more than 2 type mismatches.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (TypeMismatches <= Pos1),
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
 				};
 				return ReturnedQuestion;
 
 
 			case QuestionType.ExactlyTypes:
-				Pos1 = rnd.Next(1,3);
-
-				if(Pos1 == 1)
+				if(!RulesGenerated)
 				{
-					Plural = "There is exactly 1 type mismatch.";
+					Pos1 = rnd.Next(1,3);
+
+					if(Pos1 == 1)
+					{
+						Plural = "There is exactly 1 type mismatch.";
+					}
+					else
+					{
+						Plural = $"There are exactly {Pos1} type mismatches.";
+					}
+
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				else
 				{
-					Plural = $"There are exactly {Pos1} type mismatches.";
-				}
-
-				LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+					Pos1 = QuestionList[QuestionNumber].PosOne;
+					Plural = QuestionList[QuestionNumber].QuestionText;
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
 					IsTrue = (TypeMismatches == Pos1),
+					FlippedLights = LightsToFlip,
+					flipType = ThisFlipType,
+					ColourOrLabelFlips = ThisColourOrLabelFlips,
+					PosOne = Pos1
+				};
+				return ReturnedQuestion;
+
+
+
+			case QuestionType.AssignBeforeDeclare:
+				if(!RulesGenerated)
+				{
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
+
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
+				{
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+				}
+				ReturnedQuestion = new Question{
+					QuestionText = "The program tried to assign to a variable before it was declared.",
+					IsTrue = AssignedBeforeDeclared,
 					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
 					ColourOrLabelFlips = ThisColourOrLabelFlips
@@ -2777,122 +3240,101 @@ public class HelloWorldScript : MonoBehaviour {
 				return ReturnedQuestion;
 
 
-
-			case QuestionType.AssignBeforeDeclare:
-			LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
-				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
-
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
-
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
-				}
-				ReturnedQuestion = new Question{
-				QuestionText = "The program tried to assign to a variable before it was declared.",
-				IsTrue = AssignedBeforeDeclared,
-				FlippedLights = LightsToFlip,
-					flipType = ThisFlipType,
-					ColourOrLabelFlips = ThisColourOrLabelFlips
-			};
-			return ReturnedQuestion;
-
-
 			case QuestionType.ReadBeforeDeclare:
-			LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
+				{
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
-				QuestionText = "The program tried to read a variable before it was declared.",
-				IsTrue = ReadBeforeDeclared,
-				FlippedLights = LightsToFlip,
+					QuestionText = "The program tried to read a variable before it was declared.",
+					IsTrue = ReadBeforeDeclared,
+					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
 					ColourOrLabelFlips = ThisColourOrLabelFlips
-			};
-			return ReturnedQuestion;
+				};
+				return ReturnedQuestion;
 
 
 			case QuestionType.ReadBeforeAssign:
-			LightsToFlip = new List<int>();
-				switch(rnd.Next(0,3))
+				if(!RulesGenerated)
 				{
-					case 0:
-						ThisFlipType = FlipType.Position;
-						LightsToFlip = PositionsToFlip(rnd);
-						ThisColourOrLabelFlips = new List<Material>();
-						break;
+					LightsToFlip = new List<int>();
+					switch(rnd.Next(0,3))
+					{
+						case 0:
+							ThisFlipType = FlipType.Position;
+							LightsToFlip = PositionsToFlip(rnd);
+							ThisColourOrLabelFlips = new List<Material>();
+							break;
 
-					case 1:
-						ThisFlipType = FlipType.Colour;
-						ThisColourOrLabelFlips = ColoursToFlip(rnd);
-						foreach(Material Colour in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
-						}
-						break;
+						case 1:
+							ThisFlipType = FlipType.Colour;
+							ThisColourOrLabelFlips = ColoursToFlip(rnd);
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
 
-					case 2:
-						ThisFlipType = FlipType.Label;
-						ThisColourOrLabelFlips = LabelsToFlip(rnd);
-						foreach(Material Label in ThisColourOrLabelFlips)
-						{
-							LightsToFlip.Add(Array.IndexOf(Writings,Label));
-						}
-						break;
+						case 2:
+							ThisFlipType = FlipType.Label;
+							ThisColourOrLabelFlips = LabelsToFlip(rnd);
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
+				}
+				else
+				{
+					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					ThisFlipType = QuestionList[QuestionNumber].flipType;
+					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
 				}
 				ReturnedQuestion = new Question{
-				QuestionText = "The program tried to read a variable before it was assigned to.",
-				IsTrue = ReadBeforeAssigned,
-				FlippedLights = LightsToFlip,
+					QuestionText = "The program tried to read a variable before it was assigned to.",
+					IsTrue = ReadBeforeAssigned,
+					FlippedLights = LightsToFlip,
 					flipType = ThisFlipType,
 					ColourOrLabelFlips = ThisColourOrLabelFlips
-			};
-			return ReturnedQuestion;
+				};
+				return ReturnedQuestion;
 
 			default:
-			return new Question{};
+				return new Question{};
 		}
 	}
 	public class HelloWorldSettings
