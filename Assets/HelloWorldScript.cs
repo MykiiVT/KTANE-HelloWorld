@@ -50,7 +50,7 @@ public class HelloWorldScript : MonoBehaviour {
 	bool ReadBeforeDeclared = false;
 	bool ReadBeforeAssigned = false;
 
-	//In case the puzzle needs to be regenerated, this bool locks it out of generating ruleseeded rules again
+	//In case the puzzle needs to be regenerated, this bool locks it out of generating rules again
 	//(Which makes bad stuff happen)
 	bool RulesGenerated = false;
 
@@ -139,6 +139,9 @@ public class HelloWorldScript : MonoBehaviour {
 		public string text;
 	}
 
+	//debugging
+	//bool debugBool = false;
+
 
 	void Awake()
     {
@@ -174,6 +177,13 @@ public class HelloWorldScript : MonoBehaviour {
 		//In case the puzzle needs to be regenerated
 		ButtonColours = new Material[]{null, null, null, null};
 		Writings = new Material[]{null, null, null, null};
+		LineStatuses = new lineStatus[][]{
+		new lineStatus[]{lineStatus.none,lineStatus.none,lineStatus.none},
+		new lineStatus[]{lineStatus.none,lineStatus.none,lineStatus.none}};
+		DivisionsText = new string[][]{
+		new string[]{ "","",""},
+		new string[]{ "","",""}};
+		beginningWords = new string[] {"public","class","void"};
 		ExtraSemicolons = 0;
 		MissingSemicolons = 0;
 		MisspelledKeywords = 0;
@@ -1547,9 +1557,29 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Label1 = QuestionList[QuestionNumber].LabelOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1601,9 +1631,29 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Label1 = QuestionList[QuestionNumber].LabelOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1662,9 +1712,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Label2 = QuestionList[QuestionNumber].LabelTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1724,9 +1795,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Pos2 = QuestionList[QuestionNumber].PosTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button is in position {Pos1 + 1} or {Pos2 + 1}.",
@@ -1779,9 +1871,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Pos1 = QuestionList[QuestionNumber].PosOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1834,9 +1947,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Pos1 = QuestionList[QuestionNumber].PosOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1895,9 +2029,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Colour2 = QuestionList[QuestionNumber].ColourTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -1957,9 +2112,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Pos2 = QuestionList[QuestionNumber].PosTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -2014,9 +2190,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -2069,9 +2266,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} is not {Colour1.name}.",
@@ -2129,9 +2347,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Colour2 = QuestionList[QuestionNumber].ColourTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				
 				ReturnedQuestion = new Question{
@@ -2191,9 +2430,30 @@ public class HelloWorldScript : MonoBehaviour {
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Label2 = QuestionList[QuestionNumber].LabelTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The button in position {Pos1 + 1} says \"{Label1.name}\" or \"{Label1.name}\".",
@@ -2251,9 +2511,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Label2 = QuestionList[QuestionNumber].LabelTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The buttons labelled \"{Label1.name}\" and \"{Label2.name}\" are directly next to each other.",
@@ -2309,9 +2590,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Colour2 = QuestionList[QuestionNumber].ColourTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} and {Colour2.name} buttons are directly next to each other.",
@@ -2368,9 +2670,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Label1 = QuestionList[QuestionNumber].LabelOne;
 					Label2 = QuestionList[QuestionNumber].LabelTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The \"{Label1.name}\" button's position is further left than the \"{Label2.name}\" button.",
@@ -2426,9 +2749,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Colour1 = QuestionList[QuestionNumber].ColourOne;
 					Colour2 = QuestionList[QuestionNumber].ColourTwo;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = $"The {Colour1.name} button's position is further left than the {Colour2.name} button.",
@@ -2490,9 +2834,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2555,9 +2920,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2616,9 +3002,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2677,9 +3084,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2742,9 +3170,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2803,9 +3252,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2864,9 +3334,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2929,9 +3420,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -2990,9 +3502,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -3051,9 +3584,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -3116,9 +3670,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -3177,9 +3752,30 @@ public class HelloWorldScript : MonoBehaviour {
 				{
 					Pos1 = QuestionList[QuestionNumber].PosOne;
 					Plural = QuestionList[QuestionNumber].QuestionText;
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = Plural,
@@ -3226,9 +3822,30 @@ public class HelloWorldScript : MonoBehaviour {
 				}
 				else
 				{
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = "The program tried to assign to a variable before it was declared.",
@@ -3273,9 +3890,30 @@ public class HelloWorldScript : MonoBehaviour {
 				}
 				else
 				{
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+					
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = "The program tried to read a variable before it was declared.",
@@ -3320,9 +3958,29 @@ public class HelloWorldScript : MonoBehaviour {
 				}
 				else
 				{
-					LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
 					ThisFlipType = QuestionList[QuestionNumber].flipType;
 					ThisColourOrLabelFlips = QuestionList[QuestionNumber].ColourOrLabelFlips;
+					LightsToFlip = new List<int>();
+					switch(ThisFlipType)
+					{
+						case FlipType.Position:
+							LightsToFlip = QuestionList[QuestionNumber].FlippedLights;
+							break;
+
+						case FlipType.Colour:
+							foreach(Material Colour in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(ButtonColours,Colour));
+							}
+							break;
+
+						case FlipType.Label:
+							foreach(Material Label in ThisColourOrLabelFlips)
+							{
+								LightsToFlip.Add(Array.IndexOf(Writings,Label));
+							}
+							break;
+					}
 				}
 				ReturnedQuestion = new Question{
 					QuestionText = "The program tried to read a variable before it was assigned to.",

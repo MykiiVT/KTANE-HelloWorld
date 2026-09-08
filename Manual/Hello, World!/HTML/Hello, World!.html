@@ -149,9 +149,9 @@
                 <h3><sup>[3]</sup>Variables & Types</h3>
                 <ul>
                     <li>A variable is a “holder” of sorts that has a <b>name</b> and a specified <b>“type”.</b></li>
-                    <li>A variable can hold one value <b>of the specified type.</b></li>
-                    <br>
-                    <li>
+                    <li style="margin-bottom: 10px;">A variable can hold one value <b>of the specified type.</b></li>
+
+                    <li style="margin-bottom: 10px;">
                         The engineers only know about two types of variables:
                         <ul>
                             <li><b><code>int</code></b> type variables, which <b>only hold integer values</b>, and</li>
@@ -159,7 +159,7 @@
                             <li>As far as this module is concerned, a value of type <b><code>string</code></b> will <b>never</b> contain any of the digits 0-9.</li>
                         </ul>
                     </li>
-                    <br>
+
                     <li>In the table below is a list of everything the engineers know how to do in C#, with examples.</li>
                     <li>Lines of code that look like the following will only ever appear between the <b>innermost curly braces</b>, and this table does <b>not</b> concern code that appears <b>anywhere else.</b></li>
                 </ul>
@@ -223,7 +223,7 @@
                     </tr>
                 </table>
                 <ul>
-                    <li>
+                    <li style="margin-bottom: 10px;">
                         As far as this module is concerned:
                         <ul>
                             <li>A particular variable must be <b>declared before it is assigned a value</b>, and</li>
@@ -236,14 +236,14 @@
                             </li>
                         </ul>
                     </li>
-                    <br>
-                    <li>
+
+                    <li style="margin-bottom: 10px;">
                         If a line of code has a <b>type mismatch</b>, its action should be <b>ignored</b>.
                         <ul>
                             <li>For instance, if myString is declared a type <b><code>string</code></b> variable and there is a line underneath that tries to assign <b><code>myString = 67;</code></b>, myString should still be considered <b>unassigned.</b></li>
                         </ul>
                     </li>
-                    <br>
+
                     <li>
                         Conversely, if a line of code that contains a type mismatch is otherwise ignored, the type mismatch should <b>still be counted.</b>
                         <ul>
@@ -272,8 +272,8 @@
                 </ul>
                 <h3><sup>[4]</sup>Semicolons</h3>
                 <ul>
-                    <li><b>Every line of code between the innermost curly braces needs a single semicolon at the end. <em>Nowhere outside the innermost curly braces should there be a semicolon.</em></b></li>
-                    <br>
+                    <li style="margin-bottom: 10px;"><b>Every line of code between the innermost curly braces needs a single semicolon at the end. <em>Nowhere outside the innermost curly braces should there be a semicolon.</em></b></li>
+
                     <li>An <b>“extra semicolon”</b> can take the form of an additional semicolon at the end of a line, or a semicolon otherwise somewhere where it shouldn’t be.</li>
                     <li>A <b>“missing semicolon”</b> is when there isn’t a semicolon at the end of a line where there should be one.</li>
                     <li>
@@ -288,6 +288,7 @@
                 <ul>
                     <li>Any word on the screen that is <b>neither a value nor the name of a variable</b> is considered a "keyword"<sup>[2]</sup>. These are special predefined words that the compiler looks for to try to make sense of the code. As such, they cause problems if misspelled.</li>
                     <li>Here is a list of all keywords that may appear on the screen, in alphabetical order.</li>
+                </ul>
                      <table style = "margin-left: auto; margin-right: auto;">
                     <tr>
                         <td style = "width: 20%;">class</td>
@@ -304,14 +305,7 @@
                         <td>WriteLine</td>
                     </tr>
                 </table>
-                    <li>
-                        If a line of code has a <b>misspelled keyword</b>, it should be <b>ignored.</b>
-                        <ul>
-                            <li>For instance, if a line tries to declare <b><code>sting myString;</code></b>, the variable myString should still be considered <b>undeclared.</b></li>
-                        </ul>
-                    </li>
-                    <li>Conversely, if a line of code’s action should be ignored, any misspelled keywords in it should <b>still be counted.</b></li>
-                </ul>
+                
             </div>
             <div class="page-footer relative-footer">Page 5 of 6</div>
         </div>
@@ -322,18 +316,27 @@
             </div>
 
             <div class="page-content">
+                <ul>
+                    <li>
+                        If a line of code has a <b>misspelled keyword</b>, it should be <b>ignored.</b>
+                        <ul>
+                            <li>For instance, if a line tries to declare <b><code>sting myString;</code></b>, the variable myString should still be considered <b>undeclared.</b></li>
+                        </ul>
+                    </li>
+                    <li>Conversely, if a line of code’s action should be ignored, any misspelled keywords in it should <b>still be counted.</b></li>
+                </ul>
                 <h3><sup>[6]</sup>Ignored Lines(Summary)</h3>
                 <ul>
                     <li>If a line is ignored, that simply means that its action does not count and should be disregarded.</li>
-                    <li>
-                        A line is ignored if it:
-                        <ul>
-                            <li>has a type mismatch</li>
-                            <li>has a misspelled keyword</li>
-                            <li>tries to assign to a variable before declaring it first, or</li>
-                            <li>tries to read a variable before having both declared and assigned to it.</li>
-                        </ul>
-                    </li>
+                        <li>
+                            A line is ignored if it:
+                            <ul>
+                                <li>has a type mismatch</li>
+                                <li>has a misspelled keyword</li>
+                                <li>tries to assign to a variable before declaring it first, or</li>
+                                <li>tries to read a variable before having both declared and assigned to it.</li>
+                            </ul>
+                        </li>
                     <li>If a line is ignored for any reason, any misspelled keywords, type mismatches or semicolon problems it has should <b>still be counted.</b></li>
                 </ul>
                  <h3>Notes</h3>

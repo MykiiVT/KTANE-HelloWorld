@@ -14,13 +14,13 @@ MonoBehaviour:
   id: helloWorld
   title: Hello, World!
   author: MykiiVT
-  description: "Hello, World! 1.0\r\nMy \u201CHello, World!\u201D to the universe
-    of KTANE modding, Unity, C# and JavaScript.\r\n\r\nWork out which LEDs to blow
-    up by checking a horribly-written C# script.\r\n\r\nModule ID: helloWorld\r\n\r\nPlease
+  description: "Hello, World! 1.2\nMy \u201CHello, World!\u201D to the universe of
+    KTANE modding, Unity, C# and JavaScript.\r\n\r\nWork out which LEDs to blow up
+    by checking a horribly-written C# script.\r\n\r\nModule ID: helloWorld\r\n\r\nPlease
     let me know about any bugs on discord at mykiivt :)\r\n\r\nSupports:\r\n- TP\r\n-
     Rule seed\r\n- Colourblind\r\n- LFA\r\n- Changing check time via ModSettings file\r\n---\r\nBuild
     1.0 notes:\r\n- Initial release\n\nBuild 1.1 notes:\n- Fixed colourblind labels
-    moving with the buttons"
+    moving with the buttons\n\nBuild 1.2 notes:\n- Bug fixes"
   version: 1.0
   outputFolder: build
   debugBuild: 1
