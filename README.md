@@ -1,9 +1,24 @@
-Community fork of the KTaNE Modkit.
+Hello, World! 1.2
+My “Hello, World!” to the universe of KTANE modding, Unity, C# and JavaScript.
 
-The [original (official) modkit](https://github.com/keeptalkinggame/ktanemodkit) isn't going to receive updates anymore. This is the fork that will be maintained from now on.
+Work out which LEDs to blow up by checking a horribly-written C# script.
 
-Community-made plugins can be installed at the `Keep Talking ModKit > Plugins` menupoint.
+Module ID: helloWorld
 
-[Documentation](https://github.com/Qkrisi/ktanemodkit/wiki)
+Please let me know about any bugs on discord at mykiivt :)
 
-To get more help, join the [Keep Talking and Nobody Explodes](https://discord.gg/ktane) or the [KTaNE Modding](https://discord.gg/qzy7Gdz) Discord servers.
+Supports:
+- TP
+- Rule seed
+- Colourblind
+- LFA
+- Changing check time via ModSettings file
+---
+Build 1.0 notes:
+- Initial release
+
+Build 1.1 notes:
+- Fixed colourblind labels moving with the buttons
+
+Build 1.2 notes:
+- Bug fixes
